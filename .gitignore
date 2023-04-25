@@ -1,0 +1,10 @@
+# vscode
+.vscode/
+.clangd/
+compile_commands.json
+
+# c
+*.o
+
+# bin
+simple-tcp
