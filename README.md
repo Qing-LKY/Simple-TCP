@@ -12,6 +12,29 @@
 
 ## 使用方式
 
+编译:
+
 ```bash
-./simple-tcp server -p PORT
+make
+```
+
+使用：
+
+```text
+Usage: ./simple-tcp [-s [-q 5]] [-f FILE] [-a 0.0.0.0] [-p 8888]
+ -s, --server      start as a server
+ -q, --queue NUM   set max number of pending connections (ignore if client)
+ -a, --addr IPv4   set address (numbers-and-dots notation)
+ -p, --port NUM    set port
+ -f, --file FILE   upload filepath (ignore when server)
+ -h, --help        display this message and exit
+```
+
+示例：
+
+```bash
+# 服务端 开启服务
+./simple-tcp -s -q 5 -a 127.0.0.1 -p 5555
+# 客户端 上传内容 test.txt
+./simple-tcp -a 127.0.0.1 -p 5555 -f test.txt
 ```
