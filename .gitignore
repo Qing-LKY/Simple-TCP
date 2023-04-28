@@ -8,3 +8,6 @@ compile_commands.json
 
 # bin
 simple-tcp
+
+# log
+logs/
