@@ -17,11 +17,12 @@ int main(int argc, char *argv[]) {
     }
     if (is_server) {
         if (server_prework() == -1) return -1;
+        printf("Prework finished!\n");
+        printf("Server address: %s Port: %d\n", inet_ntoa(socket_addr.sin_addr), ntohs(socket_addr.sin_port));
         server_listener();
     } else {
         if (client_prework() == -1) return -1;
         if (client_upload() == -1) return -1;
-        if (client_recv() == -1) return -1;
     }
     return 0;
 }

@@ -21,6 +21,7 @@ socklen_t s_len;
 void sig_handle_server(int signo) {
     char *ip;
     if (signo == SIGINT) {
+        puts("");
         printf("Pid=%d terminated\n", getpid());
         if (cfd != 0) {
             ip = inet_ntoa(cli_addr.sin_addr);
@@ -33,7 +34,7 @@ void sig_handle_server(int signo) {
 int server_prework() {
     int err;
     // socket for server
-    sfd = socket(AF_INET, SOCK_STREAM, PF_INET);
+    sfd = socket(AF_INET, SOCK_STREAM, PF_UNSPEC);
     if (sfd < 0) {
         perror("Generate socket");
         return -1;
@@ -41,6 +42,7 @@ int server_prework() {
     // bind address
     if (bind(sfd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) == -1) {
         perror("Bind socket");
+        printf("Server addr: %s\n", inet_ntoa(socket_addr.sin_addr));
         return -1;
     }
     // set pending queue length
@@ -82,14 +84,14 @@ char *get_logname() {
     static char path[100];
     time_t now = time(NULL);
     struct tm *local = localtime(&now);
-    strftime(path, sizeof(path), "%Y-%m-%d-%H:%M:%S.log", local);
+    strftime(path, sizeof(path), "logs/%Y-%m-%d-%H:%M:%S.log", local);
     return path;
 }
 
 void server_connection() {
     int siz = 0, re = 0, tot = 0;
     char buf[1024];
-    char *log_name;
+    char *log_name, *ip;
     FILE *log_fp;
     // set timeout
     if (set_timeout(cfd) != 0) exit(EXIT_FAILURE);
@@ -101,13 +103,14 @@ void server_connection() {
         exit(EXIT_FAILURE);
     }
     // basic message
-    sprintf(buf, "Client IP: %s\n\n------\n\n", inet_ntoa(cli_addr.sin_addr));
+    ip = inet_ntoa(cli_addr.sin_addr);
+    sprintf(buf, "Client IP: %s\n\n------\n\n", ip);
     siz = strlen(buf);
     if (write_file(log_fp, buf, siz) != 0) exit(EXIT_FAILURE);
-    if (send_content(cfd, buf, siz) != 0) exit(EXIT_FAILURE);
+    printf("%d: Connect with IP: %s\n", getpid(), ip);
     // main loop
     for (;;) {
-        siz = recv(cfd, buf, 1024, MSG_WAITALL);
+        siz = recv(cfd, buf, 1024, 0);
         if (siz == 0) break; // normal disconnected
         if (siz == -1) {
             printf("%d: Recv: %s\n", getpid(), strerror(errno)); // timeout
@@ -116,11 +119,13 @@ void server_connection() {
         if (write_file(log_fp, buf, siz) != 0) exit(EXIT_FAILURE);
         if (send_content(cfd, buf, siz) != 0) exit(EXIT_FAILURE);
         tot += siz;
+        printf("%d: Get %d Bytes (total)\n", getpid(), tot);
+        fflush(stdout);
     }
     // Bytes count
     fprintf(log_fp, "\n\n------\n\nTotal Length: %d\n", tot);
     sprintf(buf, "Total Length: %d\n", tot);
     if (write_file(log_fp, buf, siz) != 0) exit(EXIT_FAILURE);
-    if (send_content(cfd, buf, siz) != 0) exit(EXIT_FAILURE);
+    printf("%d: %s%d: Finish with IP: %s\n", getpid(), buf, getpid(), ip);
     return;
 }
