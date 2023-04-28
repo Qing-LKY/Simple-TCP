@@ -32,7 +32,7 @@ char optstr[] = "p:a:q:f:sh";
 int copy_string(char *cnf, const char *arg) {
     int len = strlen(arg);
     // too long file/directoty name
-    if (len >= 50) return 1;
+    if (len >= 100) return 1;
     // copy string
     memcpy(cnf, arg, len + 1);
     return 0;
@@ -49,17 +49,20 @@ int copy_number(int *cnf, const char *arg) {
 }
 
 void display_help(char *arg0) {
-    printf("Usage: %s [-s [-q 5]] [-a 127.0.0.1] [-p 8888]\n", arg0);
+    printf("Usage: %s [-s [-q 5]] [-f FILE] [-a 0.0.0.0] [-p 5555]\n", arg0);
     printf(" -s, --server      start as a server\n");
     printf(" -q, --queue NUM   set max number of pending connections (ignore if client)\n");
     printf(" -a, --addr IPv4   set address (numbers-and-dots notation)\n");
     printf(" -p, --port NUM    set port\n");
     printf(" -f, --file FILE   upload filepath (ignore when server)\n");
+    printf(" -h, --help        display this message and exit\n");
+    exit(EXIT_SUCCESS);
 }
 
 int parse_args(int argc, char *argv[]) {
-    static char buf[50];
+    static char buf[100];
     int c = -1, tmp = 0, err = 0;
+    bzero(&socket_addr, sizeof(socket_addr));
     while ((c = getopt_long(argc, argv, optstr, opts, NULL)) != -1) {
         switch (c) {
             case 'h': display_help(argv[0]); break;
@@ -82,11 +85,15 @@ int parse_args(int argc, char *argv[]) {
                 set_addr = 1;
                 break;
             }
+            case 'f': {
+                err = copy_string(upload_file, optarg);
+                if (err) return puts("Failed when set -f!"), -1;
+                break;
+            }
             default: return -1;
         }
     }
-    bzero(&socket_addr, sizeof(socket_addr));
-    if (!set_addr) socket_addr.sin_addr.s_addr = INADDR_LOOPBACK; // 127.0.0.1
+    if (!set_addr) socket_addr.sin_addr.s_addr = htonl(INADDR_ANY); // 0.0.0.0
     socket_addr.sin_port = htons(port);
     socket_addr.sin_family = AF_INET;
     return 0;
