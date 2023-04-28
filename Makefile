@@ -8,11 +8,14 @@ export SHELL := /bin/sh
 all:
 	$(MAKE) -C src
 
-.phony: clean clean_logs
+.phony: clean clean_logs static
+
+static:
+	$(MAKE) -C src static
 
 clean:
 	$(MAKE) -C src clean
-	$(RM) $(TARGET)
+	$(RM) $(TARGET) $(TARGET)-static
 
 clean_logs:
 	$(RM) -r logs/
