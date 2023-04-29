@@ -22,7 +22,9 @@ int main(int argc, char *argv[]) {
         server_listener();
     } else {
         if (client_prework() == -1) return -1;
+        if (client_recv() == -1) return -1;
         if (client_upload() == -1) return -1;
+        sleep(3); // wait for recv pthread
     }
     return 0;
 }

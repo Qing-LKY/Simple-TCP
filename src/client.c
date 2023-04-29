@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <pthread.h>
 
 #include <sys/types.h>
 #include <arpa/inet.h>
@@ -68,33 +69,34 @@ int client_upload() {
     int siz = 0;
     while((siz = read(fd, buf, 1024)) > 0) {
         if (send_content(cfd, buf, siz) != 0) return -1;
-        siz = recv(cfd, buf, 1024, 0);
-        if (siz == 0) {
-            printf("Disconnect with server!\n");
-            return -1;
-        }
-        if (siz < 0) {
-            printf("Recv: %s\n", strerror(errno));
-            return -1;
-        }
-        if (write_file(stdout, buf, siz) != 0) return -1;
     }
     if (siz < 0) 
         return perror("Read"), -1;
     return 0;
 }
 
-int client_recv() {
+void *client_recv_pthread(void *arg) {
     static char buf[1024];
     int siz = 0;
     for (;;) {
         siz = recv(cfd, buf, 1024, 0);
-        if (siz == 0) break; // normal disconnected
+        if (siz == 0) {
+            printf("Disconnect with server!\n");
+            exit(EXIT_FAILURE);
+        }
         if (siz == -1) {
             printf("Recv: %s\n", strerror(errno)); // timeout
-            return -1;
+            exit(EXIT_FAILURE);
         }
-        if (write_file(stdout, buf, siz) != 0) return -1;
+        if (write_file(stdout, buf, siz) != 0) exit(EXIT_FAILURE);
     }
+}
+
+int client_recv() {
+    int ret;
+    pthread_t tid;
+    // start a pthread to recv
+    ret = pthread_create(&tid, NULL, client_recv_pthread, NULL);
+    if (ret != 0) return perror("Create pthread"), -1;
     return 0;
 }
