@@ -18,6 +18,17 @@ int sfd = 0, cfd = 0;
 struct sockaddr_in cli_addr;
 socklen_t s_len;
 
+char hint[100];
+int hint_siz;
+
+void gen_hint() {
+    sprintf(hint, "[Get message from %s:]\n", inet_ntoa(cli_addr.sin_addr));
+    hint_siz = strlen(hint);
+}
+
+const char no_nwline[] = "\033[7m\%\033[0m\n";
+const char empty[] = "";
+
 void sig_handle_server(int signo) {
     char *ip;
     if (signo == SIGINT) {
@@ -108,6 +119,8 @@ void server_connection() {
     siz = strlen(buf);
     if (write_file(log_fp, buf, siz) != 0) exit(EXIT_FAILURE);
     printf("%d: Connect with IP: %s\n", getpid(), ip);
+    // gen hint string
+    gen_hint();
     // main loop
     for (;;) {
         siz = recv(cfd, buf, 1024, 0);
@@ -117,10 +130,14 @@ void server_connection() {
             exit(EXIT_FAILURE);
         }
         if (write_file(log_fp, buf, siz) != 0) exit(EXIT_FAILURE);
-        if (send_content(cfd, buf, siz) != 0) exit(EXIT_FAILURE);
         tot += siz;
         printf("%d: Get %d Bytes (total)\n", getpid(), tot);
-        fflush(stdout);
+        // send what we recv
+        if (send_content(cfd, hint, hint_siz) != 0 || send_content(cfd, buf, siz) != 0) 
+            exit(EXIT_FAILURE);
+        sprintf(buf, "%s[Length:%d Total:%d]\n", 
+            buf[siz - 1] == '\n' ? empty : no_nwline, siz, tot);
+        if (send_content(cfd, buf, strlen(buf)) != 0) exit(EXIT_FAILURE);
     }
     // Bytes count
     fprintf(log_fp, "\n\n------\n\nTotal Length: %d\n", tot);
