@@ -7,11 +7,13 @@ export TARGET := simple-tcp
 export SHELL := /bin/sh
 
 all:
+	mkdir -p logs/
 	$(MAKE) -C src
 
 .phony: clean clean_logs static
 
 static:
+	mkdir -p logs/
 	$(MAKE) -C src static
 
 clean:
@@ -19,4 +21,4 @@ clean:
 	$(RM) $(TARGET) $(TARGET)-static
 
 clean_logs:
-	$(RM) -r logs/
+	$(RM) logs/*
