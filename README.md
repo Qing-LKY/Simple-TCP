@@ -38,3 +38,7 @@ Usage: ./simple-tcp [-s [-q 5]] [-f FILE] [-a 0.0.0.0] [-p 8888]
 # 客户端 上传内容 test.txt
 ./simple-tcp -a 127.0.0.1 -p 5555 -f test.txt
 ```
+
+## 注意事项
+
+作为服务端时，需要保证执行目录下有 logs/ 文件夹。
