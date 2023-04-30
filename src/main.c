@@ -12,8 +12,8 @@ int main(int argc, char *argv[]) {
     int err = 0;
     err = parse_args(argc, argv);
     if (err != 0) {
-        puts("Error when parse command!");
-        return 1;
+        fprintf(stderr, "Error when parse command!\n");
+        return -1;
     }
     if (is_server) {
         if (server_prework() == -1) return -1;
