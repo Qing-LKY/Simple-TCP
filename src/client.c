@@ -34,8 +34,8 @@ int client_prework() {
     }
     // check filepath
     if (upload_file[0] == 0) {
-        printf("Need upload filepath in client mode!\n");
-        printf("Use -f to set it!\n");
+        fprintf(stderr, "Need upload filepath in client mode!\n");
+        fprintf(stderr, "Use -f to set it!\n");
         return -1;
     }
     fd = open(upload_file, O_RDONLY);
@@ -81,11 +81,11 @@ void *client_recv_pthread(void *arg) {
     for (;;) {
         siz = recv(cfd, buf, 1024, 0);
         if (siz == 0) {
-            printf("Disconnect with server!\n");
+            fprintf(stderr, "Disconnect with server!\n");
             exit(EXIT_FAILURE);
         }
         if (siz == -1) {
-            printf("Recv: %s\n", strerror(errno)); // timeout
+            fprintf(stderr, "Recv: %s\n", strerror(errno)); // timeout
             exit(EXIT_FAILURE);
         }
         if (write_file(stdout, buf, siz) != 0) exit(EXIT_FAILURE);

@@ -53,7 +53,7 @@ int server_prework() {
     // bind address
     if (bind(sfd, (struct sockaddr *)&socket_addr, sizeof(socket_addr)) == -1) {
         perror("Bind socket");
-        printf("Server addr: %s\n", inet_ntoa(socket_addr.sin_addr));
+        fprintf(stderr, "Server addr: %s\n", inet_ntoa(socket_addr.sin_addr));
         return -1;
     }
     // set pending queue length
@@ -126,7 +126,7 @@ void server_connection() {
         siz = recv(cfd, buf, 1024, 0);
         if (siz == 0) break; // normal disconnected
         if (siz == -1) {
-            printf("%d: Recv: %s\n", getpid(), strerror(errno)); // timeout
+            fprintf(stderr, "%d: Recv: %s\n", getpid(), strerror(errno)); // timeout
             exit(EXIT_FAILURE);
         }
         if (write_file(log_fp, buf, siz) != 0) exit(EXIT_FAILURE);
